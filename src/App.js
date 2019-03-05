@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 import './App.css';
 
 
@@ -22,14 +23,13 @@ class App extends Component {
       results: null,
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
+      error: null
     };
 
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
   }
 
   setSearchTopStories(result) {
-
-    console.log("SEARCHING");
     const { hits, page } = result;
     const { searchKey, results } = this.state;
 
@@ -79,18 +79,18 @@ class App extends Component {
   }
 
   fetchTopStories = (searchTerm, page = 0) => {
-    fetch(`${urlPath}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-      .then(response => response.json())
-      .then(result => this.setSearchTopStories(result))
-      .then(error => error);
+    axios(`${urlPath}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+      .then(result => {this.setSearchTopStories(result.data); console.log(result);})
+      .catch(error => this.setState({ error }));
+
+      console.log(this.state);
   }
 
   render() {
-    const { searchTerm, results, searchKey } = this.state;
+    const { searchTerm, results, searchKey, error } = this.state;
     const page = (results && results[searchKey] && results[searchKey].page) || 0;
-
     const list = (results && results[searchKey] && results[searchKey].hits) || [];
-    console.log(list);
+   
     return (
       <div className="App">
 
@@ -105,7 +105,9 @@ class App extends Component {
           </Search>
         }
         {
-          <Table
+          error
+          ?<p>Something went wrong</p>
+          :<Table
             list={list}
             onDismiss={this.onDismiss} />
         }
@@ -190,3 +192,9 @@ class Button extends Component {
 
 
 export default App;
+
+export{
+  Button,
+  Search,
+  Table
+};
